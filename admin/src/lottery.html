@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aisky Daogame抽奖 - 全屏功能</title>
+    <script src="https://cdn.tailwindcss.com/3.4.3"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Noto Sans SC", "Montserrat", sans-serif;
+        background: linear-gradient(270deg, #181a1b, #222527, #131415);
+        background-size: 600% 600%;
+        animation: subtleGradientBG 30s ease infinite;
+        color: #eaeaea;
+        overflow-x: hidden; /* Base overflow-x hidden */
+        transition: padding 0.3s ease-in-out;
+      }
+
+      @keyframes subtleGradientBG {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .input-focus-gold:focus {
+        outline: none;
+        border-width: 2px;
+        border-style: solid;
+        border-image-source: linear-gradient(
+          to right,
+          #bf953f,
+          #fcf6ba,
+          #b38728,
+          #fbf5b7,
+          #aa771c
+        );
+        border-image-slice: 1;
+        box-shadow: 0 0 15px rgba(218, 165, 32, 0.3);
+      }
+
+      .drawing-text-elegant {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 300;
+        font-size: 2.25rem;
+        letter-spacing: 0.05em;
+        animation: pulseElegantText 2s infinite ease-in-out,
+          shimmerText 15s infinite linear;
+        text-shadow: 0 0 8px rgba(218, 165, 32, 0.4),
+          0 0 15px rgba(218, 165, 32, 0.2);
+      }
+      @media (min-width: 768px) {
+        .drawing-text-elegant {
+          font-size: 3.5rem;
+        }
+      }
+      @media (min-width: 1024px) {
+        .drawing-text-elegant {
+          font-size: 4.5rem;
+        }
+      }
+      @keyframes pulseElegantText {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.7;
+        }
+        50% {
+          transform: scale(1.03);
+          opacity: 1;
+        }
+      }
+      @keyframes shimmerText {
+        0% {
+          color: #d4af37;
+        }
+        25% {
+          color: #eaeaea;
+        }
+        50% {
+          color: #b8860b;
+        }
+        75% {
+          color: #f0e68c;
+        }
+        100% {
+          color: #d4af37;
+        }
+      }
+
+      .premium-glass-card {
+        background: rgba(40, 43, 48, 0.35);
+        backdrop-filter: blur(12px) saturate(150%);
+        -webkit-backdrop-filter: blur(12px) saturate(150%);
+        border: 1px solid rgba(218, 165, 32, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease,
+          max-height 0.5s ease-out;
+      }
+      .premium-glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 18px 50px rgba(218, 165, 32, 0.15);
+      }
+
+      #configArea.hidden {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        /* visibility: hidden; Delay visibility to allow opacity transition */
+        /* transition: opacity 0.3s ease, max-height 0.5s ease-out, visibility 0s linear 0.5s, padding 0.3s ease, margin 0.3s ease; */
+      }
+      #configArea {
+        opacity: 1;
+        max-height: 1000px; /* Adjust if config area can be taller */
+        /* visibility: visible; */
+        /* transition: opacity 0.3s ease, max-height 0.5s ease-out, visibility 0s linear 0s, padding 0.3s ease, margin 0.3s ease; */
+      }
+
+      .winner-list::-webkit-scrollbar {
+        width: 10px;
+      }
+      .winner-list::-webkit-scrollbar-track {
+        background: rgba(20, 22, 25, 0.5);
+        border-radius: 10px;
+      }
+      .winner-list::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #bf953f, #aa771c);
+        border-radius: 10px;
+        border: 2px solid rgba(20, 22, 25, 0.5);
+      }
+      .winner-list::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #d4af37, #bf953f);
+      }
+
+      .icon-text-align {
+        vertical-align: -0.15em;
+        margin-right: 0.4em;
+      }
+      .text-gold-accent {
+        color: #daa520;
+      }
+      .border-gold-accent {
+        border-color: #daa520;
+      }
+
+      .btn-primary-gold {
+        background-image: linear-gradient(
+          to right,
+          #bf953f 0%,
+          #fcf6ba 50%,
+          #b38728 100%
+        );
+        background-size: 200% auto;
+        color: #3a2a08;
+        transition: all 0.4s ease-out;
+        box-shadow: 0 4px 15px 0 rgba(218, 165, 32, 0.35);
+      }
+      .btn-primary-gold:hover {
+        background-position: right center;
+        box-shadow: 0 6px 20px 0 rgba(218, 165, 32, 0.5);
+        transform: scale(1.03);
+      }
+      .btn-secondary-dark {
+        background-color: #33373a;
+        border: 1px solid #daa520;
+        color: #daa520;
+        transition: all 0.3s ease-out;
+      }
+      .btn-secondary-dark:hover {
+        background-color: #daa520;
+        color: #1a1a1d;
+        transform: scale(1.03);
+      }
+      .btn-danger-dark {
+        background-color: #581313;
+        border: 1px solid #d4af37;
+        color: #f0e68c;
+        transition: all 0.3s ease-out;
+      }
+      .btn-danger-dark:hover {
+        background-color: #7f1d1d;
+        color: #fcf6ba;
+        transform: scale(1.03);
+      }
+      .btn-disabled {
+        background-color: #4a4e52 !important;
+        color: #888b8d !important;
+        cursor: not-allowed !important;
+        border: 1px solid #66696b !important;
+        box-shadow: none !important;
+        background-image: none !important;
+      }
+      .btn-disabled:hover {
+        transform: none !important;
+      }
+
+      /* Styles for Fullscreen Mode */
+      body.fullscreen-active {
+        overflow: hidden !important;
+        padding: 0 !important;
+      }
+      body.fullscreen-active > .container > #appHeader,
+      body.fullscreen-active > .container > #appActionButtons,
+      body.fullscreen-active > .container > #configArea, /* Target #configArea directly */
+      body.fullscreen-active > .container > #appFooter {
+        display: none !important;
+      }
+      body.fullscreen-active > .container > #mainDisplayArea {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2000;
+        background: linear-gradient(270deg, #181a1b, #222527, #131415);
+        padding: 1rem;
+        margin: 0 !important;
+        gap: 1rem !important;
+        max-width: 100vw !important;
+      }
+      body.fullscreen-active > .container > #mainDisplayArea > div {
+        height: calc(
+          100% - 0rem
+        ); /* Adjusted from 2rem if mainDisplayArea has 1rem padding on all sides */
+        min-height: auto !important;
+      }
+      body.fullscreen-active
+        > .container
+        > #mainDisplayArea
+        #drawingPoolSection,
+      body.fullscreen-active
+        > .container
+        > #mainDisplayArea
+        #winnersListSection {
+        max-height: 100% !important;
+        height: 100%;
+      }
+      body.fullscreen-active > .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+    </style>
+  </head>
+  <body class="p-4">
+    <div class="container mx-auto w-full max-w-screen-xl">
+      <header id="appHeader" class="text-center mb-8 sm:mb-12">
+        <h1
+          id="activityTitleDisplay"
+          class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-wider text-gold-accent"
+          style="text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7)"
+        >
+          Aisky Web3大会
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-400 mt-3 font-light">
+          &copy; Aisky 技术支持
+        </p>
+      </header>
+
+      <div
+        id="mainDisplayArea"
+        class="flex flex-col lg:flex-row gap-6 sm:gap-10 mb-8 sm:mb-12"
+      >
+        <div class="lg:flex-[3] flex flex-col" style="min-height: 650px">
+          <section
+            id="drawingPoolSection"
+            class="premium-glass-card p-4 sm:p-6 rounded-xl flex-grow flex flex-col items-center justify-center min-h-[350px] sm:min-h-[450px] lg:min-h-[550px] relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 z-0 opacity-20"
+              style="
+                background-image: url('https://source.unsplash.com/random/1600x900/?abstract,luxury,gold,event');
+                background-size: cover;
+                background-position: center;
+                filter: grayscale(50%) brightness(0.7);
+              "
+            ></div>
+            <div
+              id="drawAnimation"
+              class="relative z-10 text-center flex-grow flex flex-col items-center justify-center w-full"
+            >
+              <p class="drawing-text-elegant text-gold-accent">待启动</p>
+              <div
+                id="userReel"
+                class="mt-4 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-200"
+                style="text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.6)"
+              ></div>
+            </div>
+            <div
+              id="winnerDisplayArea"
+              class="relative z-10 mt-6 text-center hidden opacity-0 transition-opacity duration-700 ease-in-out"
+            >
+              <h3
+                class="text-2xl sm:text-3xl font-semibold text-gold-accent mb-1"
+              >
+                幸运降临
+              </h3>
+              <div
+                id="currentWinners"
+                class="mt-2 text-lg sm:text-xl text-gray-100"
+              ></div>
+            </div>
+            <div
+              class="flex flex-col sm:flex-row gap-3 pt-6 mt-auto w-full max-w-md z-10"
+            >
+              <button
+                id="startDrawBtn"
+                class="w-full sm:w-1/2 font-bold py-3 sm:py-3.5 px-4 rounded-lg flex items-center justify-center btn-primary-gold"
+              >
+                <i class="fas fa-play icon-text-align"></i>开始
+              </button>
+              <button
+                id="stopDrawBtn"
+                class="w-full sm:w-1/2 font-bold py-3 sm:py-3.5 px-4 rounded-lg flex items-center justify-center btn-danger-dark btn-disabled"
+                disabled
+              >
+                <i class="fas fa-stop icon-text-align"></i>停止
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="lg:flex-[2] flex flex-col">
+          <section
+            id="winnersListSection"
+            class="premium-glass-card p-5 sm:p-7 rounded-xl lg:max-h-[calc(550px+2.5rem+1.5rem)] overflow-hidden flex flex-col lg:sticky lg:top-10"
+            style="--button-area-height: 4.5rem"
+          >
+            <h2
+              class="text-2xl sm:text-3xl font-semibold mb-4 border-b-2 border-gold-accent pb-3 text-gold-accent sticky top-0 bg-slate-800/60 backdrop-blur-sm z-10"
+            >
+              <i class="fas fa-award icon-text-align"></i>中奖名单荣耀榜
+            </h2>
+            <div
+              id="winnersOutput"
+              class="winner-list space-y-3.5 overflow-y-auto flex-grow pr-2"
+            >
+              <p class="text-gray-400 italic">虚位以待...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div
+        id="appActionButtons"
+        class="text-center mb-6 sm:mb-8 flex flex-col sm:flex-row justify-center items-center gap-4"
+      >
+        <button
+          id="toggleConfigBtn"
+          class="px-6 py-3 btn-secondary-dark rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 ease-in-out w-full sm:w-auto"
+        >
+          <i class="fas fa-cog icon-text-align"></i>显示配置面板
+        </button>
+        <button
+          id="viewUserListBtn"
+          class="px-6 py-3 btn-secondary-dark rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 ease-in-out w-full sm:w-auto"
+        >
+          <i class="fas fa-list-ul icon-text-align"></i>查看奖池用户名单
+        </button>
+        <button
+          id="fullscreenBtn"
+          class="px-6 py-3 btn-secondary-dark rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 ease-in-out w-full sm:w-auto"
+        >
+          <i class="fas fa-expand icon-text-align"></i>全屏
+        </button>
+      </div>
+
+      <div
+        id="configArea"
+        class="flex flex-col lg:flex-row gap-6 sm:gap-10 hidden mb-8 sm:mb-12"
+      >
+        <div class="lg:w-1/2 w-full">
+          <section
+            id="activitySetup"
+            class="premium-glass-card p-5 sm:p-7 rounded-xl"
+          >
+            <h2
+              class="text-2xl sm:text-3xl font-semibold mb-5 border-b-2 border-gold-accent pb-3 text-gold-accent"
+            >
+              <i class="fas fa-cogs icon-text-align"></i>活动配置
+            </h2>
+            <div class="space-y-5">
+              <div>
+                <label
+                  for="activityName"
+                  class="block text-sm sm:text-base font-medium mb-1.5 text-gray-300"
+                  >活动名称：</label
+                >
+                <input
+                  type="text"
+                  id="activityName"
+                  class="w-full p-2.5 sm:p-3 bg-slate-700/50 rounded-lg border-2 border-transparent focus:bg-slate-600/70 input-focus-gold text-gray-100 placeholder-gray-400"
+                  placeholder="请输入活动名称"
+                  value="Aisky Web3大会"
+                />
+              </div>
+              <div>
+                <label
+                  for="activityApiId"
+                  class="block text-sm sm:text-base font-medium mb-1.5 text-gray-300"
+                  >活动 API ID：</label
+                >
+                <input
+                  type="text"
+                  id="activityApiId"
+                  class="w-full p-2.5 sm:p-3 bg-slate-700/50 rounded-lg border-2 border-transparent focus:bg-slate-600/70 input-focus-gold text-gray-100 placeholder-gray-400"
+                  disabled
+                />
+              </div>
+              <div class="space-y-3 pt-1">
+                <button
+                  id="loadUsersFromApiBtn"
+                  class="w-full font-bold py-2.5 sm:py-3 px-4 rounded-lg btn-primary-gold"
+                >
+                  <i class="fas fa-cloud-download-alt icon-text-align"></i
+                  >加载参与者名单
+                </button>
+                <button
+                  id="generateMockUsersBtn"
+                  class="w-full font-bold py-2.5 sm:py-3 px-4 rounded-lg btn-secondary-dark"
+                  style="display: none"
+                >
+                  <i class="fas fa-dice icon-text-align"></i>生成模拟名单
+                </button>
+              </div>
+              <p
+                id="userCount"
+                class="text-sm text-gray-400 mt-3 pt-2 border-t border-slate-600"
+              >
+                当前奖池人数：0
+              </p>
+            </div>
+          </section>
+        </div>
+        <div class="lg:w-1/2 w-full">
+          <section
+            id="prizeSetup"
+            class="premium-glass-card p-5 sm:p-7 rounded-xl"
+          >
+            <h2
+              class="text-2xl sm:text-3xl font-semibold mb-5 border-b-2 border-gold-accent pb-3 text-gold-accent"
+            >
+              <i class="fas fa-trophy icon-text-align"></i>奖项设置
+            </h2>
+            <div class="space-y-5">
+              <div>
+                <label
+                  for="prizeName"
+                  class="block text-sm sm:text-base font-medium mb-1.5 text-gray-300"
+                  >奖项名称：</label
+                >
+                <input
+                  type="text"
+                  id="prizeName"
+                  class="w-full p-2.5 sm:p-3 bg-slate-700/50 rounded-lg border-2 border-transparent focus:bg-slate-600/70 input-focus-gold text-gray-100 placeholder-gray-400"
+                  value="参与奖"
+                />
+              </div>
+              <div>
+                <label
+                  for="numberOfWinners"
+                  class="block text-sm sm:text-base font-medium mb-1.5 text-gray-300"
+                  >每次抽取人数：</label
+                >
+                <input
+                  type="number"
+                  id="numberOfWinners"
+                  value="1"
+                  min="1"
+                  class="w-full p-2.5 sm:p-3 bg-slate-700/50 rounded-lg border-2 border-transparent focus:bg-slate-600/70 input-focus-gold text-gray-100 placeholder-gray-400"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer id="appFooter" class="text-center mt-10 sm:mt-16 pb-6">
+        <p class="text-sm text-gray-500">
+          &copy; <span id="currentYear"></span> Aisky Daogame抽奖
+        </p>
+      </footer>
+    </div>
+    <div
+      id="userListModal"
+      class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[2001] hidden p-4 transition-opacity duration-300 ease-in-out opacity-0"
+    >
+      <div
+        class="premium-glass-card p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col transform transition-all duration-300 ease-in-out scale-95"
+      >
+        <div
+          class="flex justify-between items-center mb-4 pb-3 border-b border-gold-accent/30"
+        >
+          <h3 class="text-2xl font-semibold text-gold-accent">
+            <i class="fas fa-users icon-text-align"></i> 抽奖用户名单
+          </h3>
+          <button
+            id="closeUserListModalBtn"
+            class="text-gray-400 hover:text-amber-300 text-3xl leading-none"
+          >
+            <i class="fas fa-times-circle"></i>
+          </button>
+        </div>
+        <div
+          id="modalUserListContent"
+          class="winner-list space-y-1.5 overflow-y-auto flex-grow pr-2 text-gray-200 text-sm"
+        >
+          <p>暂无用户数据。</p>
+        </div>
+        <p class="text-xs text-gray-500 mt-4 pt-3 border-t border-slate-700/50">
+          提示：仅显示当前奖池中可参与抽奖的用户。
+        </p>
+      </div>
+    </div>
+
+    <script>
+      let userPool = [];
+      let drawingInterval;
+      let allDrawnUserIds = new Set();
+
+      // 参数配置
+      const IsTest = false; // Set to true for local testing with fixed API URL and activity ID
+      const DataType = 1; // 0、已核销，1、已报名
+      let activityId = "261"; // Default Test Activity ID
+      let baseAPIUrl = "http://t-api.aisky.io/polarisex"; // Test API Base
+
+      if (!IsTest) {
+        // Attempt to construct production API URL and get activityId from URL
+        baseAPIUrl =
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          "/rest/polarisex";
+        const urlParamsProd = new URLSearchParams(window.location.search);
+        const aidFromUrlProd = urlParamsProd.get("activityId");
+        if (aidFromUrlProd) {
+          activityId = aidFromUrlProd;
+        } else {
+          activityId = "145"; // Default production activity ID if not in URL
+        }
+        console.log(
+          "Production Mode URL:",
+          baseAPIUrl,
+          "Activity ID:",
+          activityId
+        );
+      } else {
+        console.log("Test Mode URL:", baseAPIUrl, "Activity ID:", activityId);
+      }
+
+      const activityTitleDisplay = document.getElementById(
+        "activityTitleDisplay"
+      );
+      const activityNameInput = document.getElementById("activityName");
+      const activityApiIdInput = document.getElementById("activityApiId");
+
+      const loadUsersFromApiBtn = document.getElementById(
+        "loadUsersFromApiBtn"
+      );
+      const generateMockUsersBtn = document.getElementById(
+        "generateMockUsersBtn"
+      );
+      const userCountDisplay = document.getElementById("userCount");
+
+      const prizeNameInput = document.getElementById("prizeName");
+      const numberOfWinnersInput = document.getElementById("numberOfWinners");
+      const startDrawBtn = document.getElementById("startDrawBtn");
+      const stopDrawBtn = document.getElementById("stopDrawBtn");
+
+      const drawAnimationContainer = document.getElementById("drawAnimation");
+      const drawingText = drawAnimationContainer.querySelector(
+        ".drawing-text-elegant"
+      );
+      const userReel = document.getElementById("userReel");
+      const winnerDisplayArea = document.getElementById("winnerDisplayArea");
+      const currentWinnersDisplay = document.getElementById("currentWinners");
+
+      const winnersOutput = document.getElementById("winnersOutput");
+      document.getElementById("currentYear").textContent =
+        new Date().getFullYear();
+
+      const viewUserListBtn = document.getElementById("viewUserListBtn");
+      const userListModal = document.getElementById("userListModal");
+      const closeUserListModalBtn = document.getElementById(
+        "closeUserListModalBtn"
+      );
+      const modalUserListContent = document.getElementById(
+        "modalUserListContent"
+      );
+
+      const configArea = document.getElementById("configArea");
+      const toggleConfigBtn = document.getElementById("toggleConfigBtn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+      const appHeader = document.getElementById("appHeader");
+      const appActionButtons = document.getElementById("appActionButtons");
+      const appFooter = document.getElementById("appFooter");
+      const mainDisplayArea = document.getElementById("mainDisplayArea");
+
+      function setButtonDisabled(button, disabled) {
+        if (!button) return;
+        button.disabled = disabled;
+        if (disabled) {
+          button.classList.remove(
+            "btn-primary-gold",
+            "btn-danger-dark",
+            "btn-secondary-dark"
+          );
+          button.classList.add("btn-disabled");
+        } else {
+          button.classList.remove("btn-disabled");
+          if (
+            button.id === "startDrawBtn" ||
+            button.id === "loadUsersFromApiBtn"
+          ) {
+            button.classList.add("btn-primary-gold");
+          } else if (button.id === "stopDrawBtn") {
+            if (!button.classList.contains("btn-danger-dark"))
+              button.classList.add("btn-danger-dark");
+          } else if (
+            button.id === "generateMockUsersBtn" ||
+            button.id === "viewUserListBtn" ||
+            button.id === "toggleConfigBtn" ||
+            button.id === "fullscreenBtn"
+          ) {
+            button.classList.add("btn-secondary-dark");
+          }
+        }
+      }
+
+      window.addEventListener("load", async () => {
+        activityApiIdInput.value = activityId; // Set based on IsTest or URL param
+        await loadUsersFromApi();
+
+        if (configArea.classList.contains("hidden")) {
+          toggleConfigBtn.innerHTML =
+            '<i class="fas fa-cog icon-text-align"></i>显示配置面板';
+        } else {
+          toggleConfigBtn.innerHTML =
+            '<i class="fas fa-eye-slash icon-text-align"></i>隐藏配置面板';
+        }
+        setButtonDisabled(fullscreenBtn, false);
+      });
+
+      activityNameInput.addEventListener("input", () => {
+        activityTitleDisplay.textContent =
+          activityNameInput.value.trim() || "尊享年会盛典";
+      });
+
+      async function fetchRealUsersFromAPI(activityIdParam) {
+        if (!activityIdParam || activityIdParam.trim() === "") {
+          alert("请输入有效的活动 API ID！");
+          drawingText.textContent = "请输入API ID";
+          return null;
+        }
+        const apiUrl = `${baseAPIUrl}/open/activity/usersdetails?activityId=${activityIdParam.trim()}&type=${DataType}`;
+        drawingText.textContent = "API加载中...";
+        try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+            throw new Error(
+              `API 请求失败，状态码： ${response.status} ${response.statusText}`
+            );
+          }
+          const data = await response.json();
+          if (
+            data &&
+            data.status === 200 &&
+            data.attachment &&
+            Array.isArray(data.attachment.userActivity)
+          ) {
+            if (data.attachment.activity && data.attachment.activity.name) {
+              activityNameInput.value = data.attachment.activity.name;
+              activityTitleDisplay.textContent = data.attachment.activity.name;
+            }
+            drawingText.textContent = "信息加载完毕!";
+            return data.attachment.userActivity
+              .filter((user) => user.email)
+              .map((user) => ({
+                name: user.openName || "未知姓名",
+                email: user.email,
+                id: user.email,
+              }));
+          } else {
+            console.error("API返回数据结构不符合预期:", data);
+            throw new Error(
+              data.message || "API返回数据格式错误或无用户数据。"
+            );
+          }
+        } catch (error) {
+          console.error("从API加载用户失败:", error);
+          // alert(`从API加载用户失败: ${error.message}`);
+          drawingText.textContent = "API加载失败!";
+          return null;
+        }
+      }
+
+      async function loadUsersFromApi() {
+        setButtonDisabled(loadUsersFromApiBtn, true);
+        const currentActivityId = activityApiIdInput.value;
+        try {
+          const importedUsers = await fetchRealUsersFromAPI(currentActivityId);
+          if (importedUsers) {
+            if (importedUsers.length === 0) {
+              // alert("API成功加载，但活动用户列表为空。");
+              drawingText.textContent = "用户列表为空";
+            } else {
+              // alert(`信息加载完毕！成功加载 ${importedUsers.length} 位参与者！`);
+              drawingText.textContent = "名单已加载!";
+            }
+            userPool = importedUsers;
+            allDrawnUserIds.clear();
+            updateUserCount();
+            userReel.textContent = "";
+            if (winnersOutput.innerHTML.includes("虚位以待...")) {
+              winnersOutput.innerHTML = "";
+            }
+          }
+        } catch (error) {
+          alert("处理API数据时发生意外错误: " + error.message);
+          drawingText.textContent = "数据处理错误!";
+        } finally {
+          setButtonDisabled(loadUsersFromApiBtn, false);
+        }
+      }
+
+      loadUsersFromApiBtn.addEventListener("click", async () => {
+        await loadUsersFromApi();
+      });
+
+      generateMockUsersBtn.addEventListener("click", () => {
+        const mockUsers = [];
+        const firstNames = [
+          "锦绣",
+          "远航",
+          "雅婷",
+          "博文",
+          "思睿",
+          "晨曦",
+          "浩宇",
+          "欣怡",
+          "子涵",
+          "雨萱",
+          "明轩",
+          "若熙",
+          "天佑",
+          "诗涵",
+          "哲瀚",
+        ];
+        const lastNames = [
+          "李",
+          "王",
+          "张",
+          "刘",
+          "陈",
+          "杨",
+          "赵",
+          "黄",
+          "周",
+          "吴",
+          "徐",
+          "孙",
+          "胡",
+          "朱",
+          "高",
+        ];
+        for (let i = 1; i <= 50 + Math.floor(Math.random() * 50); i++) {
+          const firstName =
+            firstNames[Math.floor(Math.random() * firstNames.length)];
+          const lastName =
+            lastNames[Math.floor(Math.random() * lastNames.length)];
+          mockUsers.push({
+            name: `${lastName}${firstName}`,
+            email: `mockuser${i}@example.com`,
+            id: `mockuser${i}@example.com`,
+          });
+        }
+        userPool = mockUsers;
+        allDrawnUserIds.clear();
+        updateUserCount();
+        drawingText.textContent = "模拟名单已生成!";
+        userReel.textContent = "";
+        if (winnersOutput.innerHTML.includes("虚位以待...")) {
+          winnersOutput.innerHTML = "";
+        }
+        alert(`成功生成 ${userPool.length} 位模拟参与者！`);
+      });
+
+      function updateUserCount() {
+        const availableToDraw = userPool.filter(
+          (user) => !allDrawnUserIds.has(user.id)
+        ).length;
+        userCountDisplay.textContent = `当前奖池人数：${availableToDraw}`;
+      }
+
+      startDrawBtn.addEventListener("click", () => {
+        const prizeName = prizeNameInput.value.trim();
+        const numWinnersToDraw = parseInt(numberOfWinnersInput.value);
+        const availablePool = userPool.filter(
+          (user) => !allDrawnUserIds.has(user.id)
+        );
+
+        if (!activityNameInput.value.trim()) {
+          alert("请输入活动名称！");
+          activityNameInput.focus();
+          return;
+        }
+        if (availablePool.length === 0) {
+          alert("请加载参会名单");
+          return;
+        }
+        if (!prizeName) {
+          alert("请输入奖项名称！");
+          prizeNameInput.focus();
+          return;
+        }
+        if (isNaN(numWinnersToDraw) || numWinnersToDraw <= 0) {
+          alert("请输入有效的抽取人数！");
+          numberOfWinnersInput.focus();
+          return;
+        }
+        if (availablePool.length < numWinnersToDraw) {
+          alert(
+            `奖池中可抽取的剩余用户 (${availablePool.length}) 不足 ${numWinnersToDraw} 人！`
+          );
+          return;
+        }
+
+        setButtonDisabled(startDrawBtn, true);
+        setButtonDisabled(stopDrawBtn, false);
+        setButtonDisabled(loadUsersFromApiBtn, true);
+        setButtonDisabled(generateMockUsersBtn, true);
+        setButtonDisabled(viewUserListBtn, true);
+        setButtonDisabled(toggleConfigBtn, true);
+        setButtonDisabled(fullscreenBtn, true);
+        prizeNameInput.disabled = true;
+        numberOfWinnersInput.disabled = true;
+        activityApiIdInput.disabled = true;
+
+        winnerDisplayArea.classList.add("hidden");
+        winnerDisplayArea.classList.remove("opacity-100");
+        winnerDisplayArea.classList.add("opacity-0");
+        currentWinnersDisplay.innerHTML = "";
+        drawingText.textContent = "飞旋吧，幸运!";
+        drawingInterval = setInterval(() => {
+          if (availablePool.length > 0) {
+            const randomUser =
+              availablePool[Math.floor(Math.random() * availablePool.length)];
+            userReel.textContent = `${randomUser.name || "N/A"} (${
+              randomUser.email
+            })`;
+            userReel.style.color = `hsl(${Math.random() * 60 + 30}, 90%, 75%)`;
+          } else {
+            userReel.textContent = "奖池已空";
+          }
+        }, 70);
+      });
+
+      stopDrawBtn.addEventListener("click", () => {
+        clearInterval(drawingInterval);
+        setButtonDisabled(startDrawBtn, false);
+        setButtonDisabled(stopDrawBtn, true);
+        setButtonDisabled(loadUsersFromApiBtn, false);
+        setButtonDisabled(generateMockUsersBtn, false);
+        setButtonDisabled(viewUserListBtn, false);
+        setButtonDisabled(toggleConfigBtn, false);
+        setButtonDisabled(fullscreenBtn, false);
+        prizeNameInput.disabled = false;
+        numberOfWinnersInput.disabled = false;
+        activityApiIdInput.disabled = false;
+
+        const prizeName = prizeNameInput.value.trim();
+        const numWinnersToDraw = parseInt(numberOfWinnersInput.value);
+        let availablePool = userPool.filter(
+          (user) => !allDrawnUserIds.has(user.id)
+        );
+
+        if (availablePool.length === 0) {
+          drawingText.textContent = "奖池已无更多可抽取用户！";
+          userReel.textContent = "";
+          return;
+        }
+        let actualNumToDraw = Math.min(numWinnersToDraw, availablePool.length);
+        let currentRoundWinners = [];
+        for (let i = 0; i < actualNumToDraw; i++) {
+          const winnerIndex = Math.floor(Math.random() * availablePool.length);
+          const winner = availablePool.splice(winnerIndex, 1)[0];
+          currentRoundWinners.push(winner);
+          allDrawnUserIds.add(winner.id);
+        }
+        if (currentRoundWinners.length > 0) {
+          drawingText.textContent = "幸运诞生！";
+          displayCurrentWinners(currentRoundWinners, prizeName);
+          addWinnersToList(prizeName, currentRoundWinners);
+          userReel.textContent = `本轮抽取 ${currentRoundWinners.length} 名`;
+        } else {
+          drawingText.textContent = "无符合条件的用户";
+          userReel.textContent = "请检查奖池";
+        }
+        updateUserCount();
+      });
+
+      function displayCurrentWinners(winners, prizeName) {
+        currentWinnersDisplay.innerHTML = "";
+        const prizeHeader = document.createElement("h4");
+        prizeHeader.className =
+          "text-xl sm:text-2xl font-medium text-amber-300 mb-2";
+        prizeHeader.textContent = `${prizeName}:`;
+        currentWinnersDisplay.appendChild(prizeHeader);
+        winners.forEach((winner) => {
+          const winnerElement = document.createElement("p");
+          winnerElement.className =
+            "text-lg sm:text-xl lg:text-2xl font-bold tracking-wide";
+          let winnerText = `${winner.name || "N/A"} (${winner.email})`;
+          winnerElement.textContent = winnerText;
+          winnerElement.style.textShadow = "1px 1px 5px rgba(0,0,0,0.7)";
+          currentWinnersDisplay.appendChild(winnerElement);
+        });
+        winnerDisplayArea.classList.remove("hidden");
+        setTimeout(() => winnerDisplayArea.classList.add("opacity-100"), 50);
+      }
+
+      function addWinnersToList(prizeName, winners) {
+        if (winnersOutput.innerHTML.includes("虚位以待...")) {
+          winnersOutput.innerHTML = "";
+        }
+        const prizeGroup = document.createElement("div");
+        prizeGroup.className =
+          "mb-4 p-3.5 bg-slate-800/40 rounded-lg shadow-lg border border-gold-accent/30";
+        const prizeTitle = document.createElement("h3");
+        prizeTitle.className =
+          "text-lg sm:text-xl font-semibold text-gold-accent mb-2.5";
+        prizeTitle.innerHTML = `<i class="fas fa-medal icon-text-align text-amber-400"></i> ${prizeName}`;
+        prizeGroup.appendChild(prizeTitle);
+        const winnerListUl = document.createElement("ul");
+        winnerListUl.className = "space-y-1.5 pl-1";
+        winners.forEach((winner) => {
+          const listItem = document.createElement("li");
+          listItem.className =
+            "text-sm sm:text-base text-gray-300 flex items-center";
+          let winnerDetail = `${winner.name || "N/A"} (${winner.email})`;
+          listItem.innerHTML = `<i class="fas fa-star text-xs text-amber-400 mr-2.5 flex-shrink-0"></i> <span class="truncate" title="${winnerDetail}">${winnerDetail}</span>`;
+          winnerListUl.appendChild(listItem);
+        });
+        prizeGroup.appendChild(winnerListUl);
+        winnersOutput.prepend(prizeGroup);
+      }
+
+      viewUserListBtn.addEventListener("click", () => {
+        modalUserListContent.innerHTML = "";
+        const availableToDraw = userPool.filter(
+          (user) => !allDrawnUserIds.has(user.id)
+        );
+        if (availableToDraw.length === 0) {
+          modalUserListContent.innerHTML =
+            '<p class="text-gray-400 italic p-2">当前没有可供抽奖的用户。</p>';
+        } else {
+          const ul = document.createElement("ul");
+          ul.className = "divide-y divide-slate-700/50";
+          availableToDraw.forEach((user, index) => {
+            const li = document.createElement("li");
+            li.className =
+              "py-2 px-2.5 hover:bg-slate-700/30 rounded transition-colors flex justify-between items-center";
+            let userMainInfo = `<span class="font-medium text-amber-100">${
+              user.name || "N/A"
+            }</span> <span class="text-xs text-gray-400">(${
+              user.email
+            })</span>`;
+            li.innerHTML = `<div class="flex-grow overflow-hidden mr-2">${userMainInfo}</div>`;
+            ul.appendChild(li);
+          });
+          modalUserListContent.appendChild(ul);
+        }
+        userListModal.classList.remove("hidden");
+        setTimeout(() => {
+          userListModal.classList.add("opacity-100");
+          userListModal
+            .querySelector(".premium-glass-card")
+            .classList.add("scale-100");
+          userListModal
+            .querySelector(".premium-glass-card")
+            .classList.remove("scale-95");
+        }, 10);
+      });
+
+      closeUserListModalBtn.addEventListener("click", () => {
+        userListModal.classList.remove("opacity-100");
+        userListModal
+          .querySelector(".premium-glass-card")
+          .classList.remove("scale-100");
+        userListModal
+          .querySelector(".premium-glass-card")
+          .classList.add("scale-95");
+        setTimeout(() => userListModal.classList.add("hidden"), 300);
+      });
+
+      userListModal.addEventListener("click", (event) => {
+        if (event.target === userListModal) {
+          closeUserListModalBtn.click();
+        }
+      });
+
+      toggleConfigBtn.addEventListener("click", () => {
+        const isCurrentlyHidden = configArea.classList.contains("hidden");
+        if (isCurrentlyHidden) {
+          configArea.classList.remove("hidden");
+          toggleConfigBtn.innerHTML =
+            '<i class="fas fa-eye-slash icon-text-align"></i>隐藏配置面板';
+        } else {
+          configArea.classList.add("hidden");
+          toggleConfigBtn.innerHTML =
+            '<i class="fas fa-cog icon-text-align"></i>显示配置面板';
+        }
+      });
+
+      fullscreenBtn.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch((err) => {
+            console.error(`无法进入全屏模式: ${err.message} (${err.name})`);
+            alert(`无法进入全屏模式: ${err.message}`);
+          });
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          }
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        const isInFullscreen = !!document.fullscreenElement;
+        document.body.classList.toggle("fullscreen-active", isInFullscreen);
+        if (isInFullscreen) {
+          fullscreenBtn.innerHTML =
+            '<i class="fas fa-compress icon-text-align"></i>退出全屏';
+        } else {
+          fullscreenBtn.innerHTML =
+            '<i class="fas fa-expand icon-text-align"></i>全屏';
+        }
+        setButtonDisabled(fullscreenBtn, false);
+      });
+
+      updateUserCount();
+      drawingText.textContent = "请配置活动";
+      setButtonDisabled(stopDrawBtn, true);
+      setButtonDisabled(viewUserListBtn, false);
+      setButtonDisabled(toggleConfigBtn, false);
+      setButtonDisabled(fullscreenBtn, false);
+
+      if (configArea.classList.contains("hidden")) {
+        // Ensure button text matches initial state
+        toggleConfigBtn.innerHTML =
+          '<i class="fas fa-cog icon-text-align"></i>显示配置面板';
+      } else {
+        toggleConfigBtn.innerHTML =
+          '<i class="fas fa-eye-slash icon-text-align"></i>隐藏配置面板';
+      }
+    </script>
+  </body>
+</html>

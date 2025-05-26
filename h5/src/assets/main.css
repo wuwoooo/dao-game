@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义样式，用于呼吸效果、渐变边框等 */
+body {
+  font-family: "Inter", sans-serif; /* 备用字体，Tailwind 默认使用系统 UI 字体 */
+  background-color: #f0f2f5; /* 浅灰色背景 */
+  scroll-behavior: smooth; /* 全局平滑滚动 */
+}
+
+/* 卡片呼吸/渐变背景示例 - 用于徽章 */
+.breathing-gradient-bg {
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 输入框聚焦渐变边框 */
+.input-focus-gradient:focus {
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+  border-width: 2px;
+  outline: none;
+}
+
+/* 按钮悬停放大 */
+.button-hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+.button-hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* 卡片悬停阴影加深 */
+.card-hover-shadow {
+  transition: box-shadow 0.3s ease-in-out;
+}
+.card-hover-shadow:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* 视差背景效果容器 */
+.parallax-container {
+  perspective: 1px;
+  height: 60vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+}
+
+.parallax-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  transform: translateZ(-1px) scale(1.5);
+}
+
+.parallax-content {
+  padding: 2rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  text-align: center;
+  color: white;
+}
+
+/* 卡片图片区域 */
+.card-image-container {
+  aspect-ratio: 16 / 9;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-image-container img {
+  transition: transform 0.4s ease-out;
+}
+
+.card-hover-shadow:hover .card-image-container img {
+  transform: scale(1.05);
+}
+
+/* 描述文本行数限制 */
+.description-truncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.5em;
+}
+
+/* Banner 样式 */
+.banner-container {
+  height: 40vh;
+  max-height: 300px;
+  background-color: #d1d5db;
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-slides-wrapper {
+  display: flex;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.banner-slide {
+  min-width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Banner 滚动逻辑相关样式 */
+.banner-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  opacity: 0.5;
+  border-radius: 50%;
+  margin: 0 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.banner-dot.opacity-100 {
+  opacity: 1;
+  width: 12px;
+}
+
+/* 快捷按钮样式 */
+.quick-action-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.quick-action-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

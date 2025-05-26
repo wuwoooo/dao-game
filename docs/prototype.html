@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>游戏/应用分发平台 - H5 原型</title>
+    <script src="https://cdn.tailwindcss.com/3.4.3"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <style>
+      /* 自定义样式，用于呼吸效果、渐变边框等 */
+      body {
+        font-family: "Inter", sans-serif; /* 备用字体，Tailwind 默认使用系统 UI 字体 */
+        background-color: #f0f2f5; /* 浅灰色背景 */
+        scroll-behavior: smooth; /* 全局平滑滚动 */
+      }
+
+      /* 卡片呼吸/渐变背景示例 - 用于徽章 */
+      .breathing-gradient-bg {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+      }
+
+      @keyframes gradientBG {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* 输入框聚焦渐变边框 */
+      .input-focus-gradient:focus {
+        border-image-slice: 1;
+        border-image-source: linear-gradient(
+          to right,
+          #6366f1,
+          #a855f7,
+          #ec4899
+        ); /* 调整了渐变色 */
+        border-width: 2px;
+        outline: none;
+      }
+
+      /* 按钮悬停放大 */
+      .button-hover-scale {
+        transition: transform 0.2s ease-in-out;
+      }
+      .button-hover-scale:hover {
+        transform: scale(1.05);
+      }
+
+      /* 卡片悬停阴影加深 */
+      .card-hover-shadow {
+        transition: box-shadow 0.3s ease-in-out;
+      }
+      .card-hover-shadow:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2),
+          0 4px 6px -2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 视差背景效果容器 */
+      .parallax-container {
+        perspective: 1px;
+        height: 60vh; /* 稍微增加高度 */
+        overflow-x: hidden;
+        overflow-y: auto;
+        position: relative;
+      }
+      .parallax-background {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: -1;
+        background-size: cover;
+        background-position: center;
+        transform: translateZ(-1px) scale(1.5); /* 调整 scale 以适应容器高度变化 */
+        /* 图片URL将通过内联样式或JS设置 */
+      }
+      .parallax-content {
+        padding: 2rem;
+        background-color: rgba(
+          0,
+          0,
+          0,
+          0.3
+        ); /* 调整为深色半透明背景，提高对比度 */
+        text-align: center;
+        color: white; /* 文字改为白色 */
+      }
+
+      /* 为动态添加的详情按钮添加过渡 */
+      #detail-action-container button,
+      #detail-action-container a {
+        transition: all 0.3s ease-in-out;
+      }
+
+      /* 卡片图片区域 */
+      .card-image-container {
+        aspect-ratio: 16 / 9; /* 保持16:9的宽高比 */
+        background-color: #e5e7eb; /* 占位背景色 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* 确保图片在容器内 */
+      }
+      .card-image-container img {
+        transition: transform 0.4s ease-out;
+      }
+      .card-hover-shadow:hover .card-image-container img {
+        transform: scale(1.05); /* 图片轻微放大 */
+      }
+
+      /* 描述文本行数限制 */
+      .description-truncate {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* 显示两行 */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 2.5em; /* 确保至少有两行的高度，根据字体大小调整 */
+      }
+
+      /* Banner 样式 */
+      .banner-container {
+        height: 40vh; /* Banner 高度 */
+        max-height: 300px; /* 最大高度 */
+        background-color: #d1d5db; /* 占位背景色 */
+        overflow: hidden;
+        position: relative; /* 为了内部绝对定位的导航点（如果需要） */
+      }
+      .banner-slides-wrapper {
+        display: flex;
+        height: 100%;
+        transition: transform 0.5s ease-in-out;
+      }
+      .banner-slide {
+        min-width: 100%; /* 每个slide占满容器宽度 */
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        display: flex; /* 用于未来可能的文字叠加 */
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* 快捷按钮样式 */
+      .quick-action-button {
+        transition: all 0.2s ease-in-out;
+      }
+      .quick-action-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Banner 滚动逻辑相关样式 */
+      .banner-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .banner-dot {
+        width: 8px;
+        height: 8px;
+        background-color: white;
+        opacity: 0.5;
+        border-radius: 50%;
+        margin: 0 4px;
+        transition: all 0.3s ease;
+      }
+      .banner-dot.opacity-100 {
+        opacity: 1;
+        width: 12px;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 text-slate-800">
+    <!-- 页面容器 -->
+    <div class="container mx-auto p-0 md:p-0 lg:p-0">
+      <!-- 调整内边距为0，让页眉和banner占满宽度 -->
+
+      <!-- 1. 页眉 (Header) - 包含搜索框 -->
+      <header
+        class="py-4 px-4 md:px-6 lg:px-8 sticky top-0 bg-white/90 backdrop-blur-md z-50 shadow-sm"
+      >
+        <div class="container mx-auto flex items-center justify-between">
+          <!-- Logo -->
+          <div class="text-2xl font-bold text-indigo-600">
+            <i class="fas fa-rocket mr-1"></i>DaoGame
+          </div>
+
+          <!-- 搜索框 -->
+          <div class="flex-grow max-w-xl mx-4">
+            <div class="relative">
+              <input
+                type="search"
+                placeholder="搜索精彩游戏..."
+                class="w-full py-2.5 px-4 pr-10 text-sm text-slate-700 rounded-full border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:border-indigo-500 transition-all"
+              />
+              <button
+                class="absolute right-0 top-0 bottom-0 px-3 text-slate-500 hover:text-indigo-600"
+              >
+                <i class="fas fa-search text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 用户链接/登录 -->
+          <nav>
+            <a
+              href="#login-section"
+              class="text-slate-600 hover:text-indigo-600 flex items-center"
+            >
+              <i class="fas fa-user-circle text-xl mr-1"></i>
+              <span class="text-sm hidden sm:inline">登录</span>
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- 主内容区 -->
+      <main class="pt-4">
+        <!-- 2. 滚动 Banner -->
+        <section
+          id="banner-section"
+          class="mb-6 md:mb-8 shadow-md rounded-lg mx-4 md:mx-6 lg:mx-8 overflow-hidden"
+        >
+          <div class="banner-container">
+            <div class="banner-slides-wrapper">
+              <!-- Banner Slides -->
+              <div
+                class="banner-slide"
+                style="
+                  background-image: url('https://picsum.photos/1200/400?random=1');
+                "
+              >
+                <!-- Optional content on slide -->
+              </div>
+              <div
+                class="banner-slide"
+                style="
+                  background-image: url('https://picsum.photos/1200/400?random=2');
+                "
+              ></div>
+              <div
+                class="banner-slide"
+                style="
+                  background-image: url('https://picsum.photos/1200/400?random=3');
+                "
+              ></div>
+              <div
+                class="banner-slide"
+                style="
+                  background-image: url('https://picsum.photos/1200/400?random=4');
+                "
+              ></div>
+            </div>
+            <!-- 未来可以添加导航点 -->
+            <div
+              class="banner-dots absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2"
+            >
+              <!-- Navigation dots will be generated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 四个快捷按钮 -->
+        <section id="quick-actions" class="mb-8 md:mb-10 px-4 md:px-6 lg:px-8">
+          <div class="grid grid-cols-4 gap-4 md:gap-6 text-center">
+            <a
+              href="#"
+              class="quick-action-button bg-white p-4 rounded-xl shadow-lg flex flex-col items-center justify-center"
+            >
+              <i class="fas fa-gift text-3xl text-red-500 mb-2"></i>
+              <span class="text-sm font-medium text-slate-700">福利</span>
+            </a>
+            <a
+              href="#"
+              class="quick-action-button bg-white p-4 rounded-xl shadow-lg flex flex-col items-center justify-center"
+            >
+              <i class="fas fa-trophy text-3xl text-yellow-500 mb-2"></i>
+              <span class="text-sm font-medium text-slate-700">榜单</span>
+            </a>
+            <a
+              href="#"
+              class="quick-action-button bg-white p-4 rounded-xl shadow-lg flex flex-col items-center justify-center"
+            >
+              <i class="fas fa-th-large text-3xl text-blue-500 mb-2"></i>
+              <span class="text-sm font-medium text-slate-700">分类</span>
+            </a>
+            <a
+              href="#"
+              class="quick-action-button bg-white p-4 rounded-xl shadow-lg flex flex-col items-center justify-center"
+            >
+              <i class="fas fa-calendar-alt text-3xl text-green-500 mb-2"></i>
+              <span class="text-sm font-medium text-slate-700">预约</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- 4. "热门"内容区 -->
+        <section id="hot-section" class="mb-12 px-4 md:px-6 lg:px-8">
+          <h2 class="text-xl md:text-2xl font-semibold mb-6 text-slate-800">
+            <i class="fas fa-fire mr-2 text-red-500"></i>热门
+          </h2>
+          <div
+            id="hot-card-list"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <!-- 卡片将通过JS动态添加或直接在此处编写HTML -->
+            <!-- 示例卡片结构 (此结构会被JS覆盖，仅作参考) -->
+            <div
+              class="bg-white rounded-xl shadow-md overflow-hidden card-hover-shadow transform hover:-translate-y-1.5 transition-all duration-300 ease-out"
+            >
+              <div class="card-image-container">
+                <img
+                  class="h-full w-full object-cover"
+                  src="https://picsum.photos/400/300?random=101"
+                  alt="游戏封面"
+                />
+                <i class="fas fa-image fa-3x text-slate-400 opacity-70"></i>
+              </div>
+              <div class="p-5">
+                <div class="flex justify-between items-center mb-2">
+                  <span
+                    class="uppercase tracking-wide text-xs text-indigo-600 font-semibold"
+                    >游戏</span
+                  >
+                  <span class="text-xs text-slate-400"
+                    ><i class="fas fa-eye mr-1"></i>1.2k</span
+                  >
+                </div>
+                <a
+                  href="#"
+                  class="block mt-1 text-lg leading-tight font-medium text-black hover:text-indigo-700 transition-colors duration-200 game-card-link"
+                  data-id="1"
+                  >炫酷方块消除</a
+                >
+                <p class="mt-2 text-slate-500 text-sm description-truncate">
+                  一款令人上瘾的益智消除游戏，挑战你的最高分！
+                </p>
+                <div class="mt-4">
+                  <button
+                    class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg button-hover-scale text-sm transition-all duration-200"
+                  >
+                    <i class="fas fa-play mr-1"></i>开始体验
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- 更多卡片... -->
+          </div>
+        </section>
+
+        <!-- 5. "首发上线"内容区 -->
+        <section id="new-releases-section" class="mb-12 px-4 md:px-6 lg:px-8">
+          <h2 class="text-xl md:text-2xl font-semibold mb-6 text-slate-800">
+            <i class="fas fa-bullhorn mr-2 text-green-500"></i>首发上线
+          </h2>
+          <div
+            id="new-releases-card-list"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <!-- 卡片将通过JS动态添加 -->
+          </div>
+        </section>
+
+        <!-- 6. "推荐"内容区 -->
+        <section
+          id="recommendations-section"
+          class="mb-12 px-4 md:px-6 lg:px-8"
+        >
+          <h2 class="text-xl md:text-2xl font-semibold mb-6 text-slate-800">
+            <i class="fas fa-star mr-2 text-yellow-400"></i>推荐
+          </h2>
+          <div
+            id="recommendations-card-list"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <!-- 卡片将通过JS动态添加 -->
+          </div>
+        </section>
+
+        <!-- 3. 游戏/应用详情区域 (初始隐藏) -->
+        <section
+          id="detail-section"
+          class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center p-4 z-[100] hidden transition-opacity duration-300 ease-out"
+          style="opacity: 0"
+        >
+          <div
+            class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative transform scale-95 transition-all duration-300 ease-out"
+            style="opacity: 0; transform: translateY(20px)"
+          >
+            <!-- 初始状态用于JS动画 -->
+            <button
+              id="close-detail-button"
+              class="absolute top-4 right-4 text-3xl text-slate-400 hover:text-slate-600 transition-colors z-10"
+            >
+              &times;
+            </button>
+            <h2
+              id="detail-title"
+              class="text-2xl md:text-3xl font-bold mb-4 text-slate-800"
+            >
+              游戏/应用详情
+            </h2>
+            <div
+              class="w-full aspect-video rounded-lg mb-4 overflow-hidden bg-slate-200"
+            >
+              <img
+                id="detail-image"
+                src=""
+                alt="详情图片"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <p id="detail-type" class="text-indigo-600 font-semibold mb-2"></p>
+            <p id="detail-description" class="text-slate-600 mb-4"></p>
+            <div id="detail-action-container">
+              <!-- 例如：开始游戏按钮 或 嵌入iframe的容器 -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. 游戏嵌入容器 (用于详情页或直接链接) -->
+        <section
+          id="game-embed-container"
+          class="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center p-4 z-[110] hidden transition-opacity duration-300 ease-out"
+          style="opacity: 0"
+        >
+          <div class="w-full max-w-4xl">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-2xl font-semibold text-white">正在畅玩...</h3>
+              <button
+                id="close-embed-button"
+                class="text-2xl text-white hover:text-slate-300"
+              >
+                &times;
+              </button>
+            </div>
+            <div
+              class="aspect-w-16 aspect-h-9 bg-slate-800 rounded-lg shadow-2xl overflow-hidden"
+            >
+              <iframe
+                id="game-iframe"
+                src="about:blank"
+                class="w-full h-full"
+                frameborder="0"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <p class="mt-3 text-sm text-slate-300 text-center">
+              如果游戏无法加载，请尝试刷新或检查浏览器设置。
+            </p>
+          </div>
+        </section>
+
+        <!-- 5. 用户登录/信息展示区域 -->
+        <section
+          id="login-section"
+          class="py-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl shadow-2xl text-white"
+        >
+          <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-6">加入我们</h2>
+            <div id="user-info-display" class="hidden mb-6">
+              <img
+                id="user-avatar"
+                src="https://picsum.photos/100/100?random=100"
+                alt="User Avatar"
+                class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-300 shadow-lg"
+              />
+              <h3 id="user-name" class="text-2xl font-semibold">用户名</h3>
+              <p id="user-id" class="text-indigo-200">ID: 12345</p>
+              <button
+                id="logout-button"
+                class="mt-4 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-lg button-hover-scale"
+              >
+                退出登录
+              </button>
+            </div>
+            <form id="login-form" class="max-w-md mx-auto">
+              <div class="mb-4">
+                <label
+                  for="token"
+                  class="block text-indigo-100 text-sm font-bold mb-2"
+                  >Token (模拟登录)</label
+                >
+                <input
+                  type="text"
+                  id="token"
+                  name="token"
+                  placeholder="请输入您的访问Token"
+                  class="shadow appearance-none border rounded-full w-full py-3 px-5 text-slate-700 leading-tight focus:outline-none focus:shadow-outline input-focus-gradient border-transparent"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full button-hover-scale text-lg transition-colors duration-200"
+              >
+                <i class="fas fa-sign-in-alt mr-2"></i>登录/验证
+              </button>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <!-- 页脚 (Footer) -->
+      <footer class="text-center py-8 mt-12 border-t border-slate-300">
+        <p class="text-slate-500">
+          &copy; 2024 DaoGame 分发平台. 保留所有权利.
+        </p>
+        <p class="text-sm text-slate-400 mt-1">
+          使用 TailwindCSS & Font Awesome 构建
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // 占位数据
+      const sampleGames = [
+        {
+          id: 1,
+          name: "炫酷方块消除 V2",
+          type: "游戏",
+          description:
+            "全新升级的方块消除，更多关卡，更炫特效，挑战你的智慧极限！",
+          imageUrl: "https://picsum.photos/400/300?random=101",
+          views: "1.8k",
+          embedUrl: "https://threejs.org/examples/css3d_periodictable.html", // 示例嵌入内容
+        },
+        {
+          id: 2,
+          name: "星际远航者 Pro",
+          type: "游戏",
+          description: "驾驶旗舰级飞船，探索更广阔的宇宙，参与史诗级星际战争。",
+          imageUrl: "https://picsum.photos/400/300?random=102",
+          views: "4.2k",
+          embedUrl: "https://webglsamples.org/aquarium/aquarium.html", // 示例嵌入内容
+        },
+        {
+          id: 3,
+          name: "AI天气与生活",
+          type: "应用",
+          description:
+            "AI驱动的智能生活助手，精准天气预报，结合您的日程提供出行和活动建议。",
+          imageUrl: "https://picsum.photos/400/300?random=103",
+          views: "950",
+          externalUrl: "https://www.windy.com",
+        },
+        {
+          id: 4,
+          name: "创意美食家",
+          type: "应用",
+          description:
+            "探索全球创意美食，学习米其林级食谱，轻松制作艺术品般的菜肴。",
+          imageUrl: "https://picsum.photos/400/300?random=104",
+          views: "2.5k",
+          externalUrl: "https://www.allrecipes.com",
+        },
+        {
+          id: 5,
+          name: "赛博都市狂飙",
+          type: "游戏",
+          description:
+            "在光怪陆离的未来都市中进行极限跑酷，飞檐走壁，挑战不可能的任务。",
+          imageUrl: "https://picsum.photos/400/300?random=105",
+          views: "7.1k",
+          embedUrl: "https://playcanv.as/p/2OJW9C0D/", // 示例嵌入内容 (HexGL)
+        },
+        {
+          id: 6,
+          name: "心灵绿洲：冥想与白噪音",
+          type: "应用",
+          description:
+            "专业引导式冥想课程，海量白噪音与自然声景，助您快速进入宁静状态。",
+          imageUrl: "https://picsum.photos/400/300?random=106",
+          views: "1.1k",
+          externalUrl: "https://www.calm.com",
+        },
+        {
+          id: 7,
+          name: "云端代码编辑器",
+          type: "应用",
+          description:
+            "功能强大的在线代码编辑器，支持实时协作和版本控制，随时随地高效编程。",
+          imageUrl: "https://picsum.photos/400/300?random=107",
+          views: "680",
+          externalUrl: "https://codepen.io/pen/",
+        },
+        {
+          id: 8,
+          name: "超时空画廊探秘",
+          type: "游戏",
+          description:
+            "穿越时空，探索不同时代的虚拟艺术画廊，与历史名作进行互动解谜。",
+          imageUrl: "https://picsum.photos/400/300?random=108",
+          views: "990",
+          embedUrl:
+            "https://artsandculture.google.com/streetview/versailles-palace-of-versailles/MwEwEkwO1Ealsw?sv_lng=2.1204811&sv_lat=48.804939&sv_h=330&sv_p=0&sv_pid=N3x9rB2AfGAg7gVvtgYq9A&sv_z=1",
+        },
+      ];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const hotCardList = document.getElementById("hot-card-list");
+        const newReleasesCardList = document.getElementById(
+          "new-releases-card-list"
+        );
+        const recommendationsCardList = document.getElementById(
+          "recommendations-card-list"
+        );
+
+        const detailSection = document.getElementById("detail-section");
+        const detailTitle = document.getElementById("detail-title");
+        const detailImage = document.getElementById("detail-image");
+        const detailType = document.getElementById("detail-type");
+        const detailDescription = document.getElementById("detail-description");
+        const detailActionContainer = document.getElementById(
+          "detail-action-container"
+        );
+        const closeDetailButton = document.getElementById(
+          "close-detail-button"
+        );
+        const gameEmbedContainer = document.getElementById(
+          "game-embed-container"
+        );
+        const gameIframe = document.getElementById("game-iframe");
+        const closeEmbedButton = document.getElementById("close-embed-button");
+
+        const loginForm = document.getElementById("login-form");
+        const userInfoDisplay = document.getElementById("user-info-display");
+        const userNameDisplay = document.getElementById("user-name");
+        const userIdDisplay = document.getElementById("user-id");
+        const userAvatarDisplay = document.getElementById("user-avatar");
+        const logoutButton = document.getElementById("logout-button");
+
+        // 函数：生成单个卡片的HTML
+        function createCardHTML(item) {
+          return `
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover-shadow transform hover:-translate-y-1.5 transition-all duration-300 ease-out cursor-pointer flex flex-col" data-id="${
+              item.id
+            }">
+                <div class="card-image-container relative">
+                    <img class="absolute inset-0 h-full w-full object-cover" src="${
+                      item.imageUrl
+                    }" alt="${
+            item.name
+          } 封面" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="absolute inset-0 h-full w-full object-cover bg-slate-200 items-center justify-center hidden"> <!-- Fallback for broken image -->
+                        <i class="fas fa-image fa-3x text-slate-400"></i>
+                    </div>
+                    <div class="absolute top-2 right-2 text-white text-xs font-semibold px-2 py-1 rounded ${
+                      item.type === "游戏"
+                        ? "bg-purple-600 breathing-gradient-bg"
+                        : "bg-sky-500"
+                    }">${item.type}</div>
+                </div>
+                <div class="p-5 flex flex-col flex-grow"> 
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-md font-semibold text-slate-800 hover:text-indigo-600 transition-colors duration-200 leading-tight truncate" title="${
+                          item.name
+                        }">${item.name}</h3>
+                        <span class="text-xs text-slate-400 whitespace-nowrap"><i class="fas fa-users mr-1"></i>${
+                          item.views
+                        }</span>
+                    </div>
+                    <p class="text-slate-500 text-sm description-truncate mb-4 flex-grow">${
+                      item.description
+                    }</p>
+                    <button class="w-full mt-auto bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg button-hover-scale text-sm action-button transition-all duration-200" data-id="${
+                      item.id
+                    }">
+                        <i class="fas ${
+                          item.type === "游戏"
+                            ? "fa-gamepad"
+                            : "fa-external-link-alt"
+                        } mr-2"></i>${
+            item.type === "游戏" ? "立即畅玩" : "前往查看"
+          }
+                    </button>
+                </div>
+            </div>
+        `;
+        }
+
+        // 函数：填充卡片列表
+        function populateCardList(listElement, data) {
+          if (!listElement) return;
+          listElement.innerHTML = ""; // 清空现有卡片
+          data.forEach((item) => {
+            listElement.innerHTML += createCardHTML(item);
+          });
+        }
+
+        // 动态生成卡片列表
+        // 为简化原型，所有列表暂时使用相同的数据源或其切片
+        populateCardList(hotCardList, sampleGames.slice(0, 4)); // 例如，热门显示前4个
+        populateCardList(
+          newReleasesCardList,
+          sampleGames.slice(4, 8).reverse()
+        ); // 例如，首发显示后4个并反转顺序
+        populateCardList(
+          recommendationsCardList,
+          [...sampleGames].sort(() => 0.5 - Math.random()).slice(0, 4)
+        ); // 例如，推荐随机4个
+
+        // 卡片点击事件 (事件委托到各个card-list的父级，或者分别监听)
+        // 为了简化，这里假设所有卡片列表的父容器是 document.body 或 main
+        // 更优的做法是为每个列表容器分别添加事件监听器
+        document.body.addEventListener("click", (event) => {
+          // 查找被点击的卡片或卡片内的行动按钮
+          const cardElement = event.target.closest(
+            ".card-hover-shadow[data-id]"
+          );
+          const actionButton = event.target.closest(".action-button[data-id]");
+
+          let itemId;
+          if (actionButton) {
+            itemId = actionButton.dataset.id;
+          } else if (cardElement) {
+            itemId = cardElement.dataset.id;
+          }
+
+          if (itemId) {
+            const item = sampleGames.find((g) => g.id.toString() === itemId);
+            if (item) {
+              showItemDetail(item);
+            }
+          }
+        });
+
+        function showItemDetail(item) {
+          detailTitle.textContent = item.name;
+          detailImage.src = item.imageUrl.replace("400/300", "800/600"); // 更大图片 for picsum
+          detailImage.alt = item.name + " 详情图片";
+          detailImage.onerror = function () {
+            this.src = "https://picsum.photos/800/600?random=999"; // Fallback for detail image
+            this.alt = "图片加载失败";
+          };
+          detailType.textContent = item.type;
+          detailType.className = `font-semibold mb-2 ${
+            item.type === "游戏" ? "text-purple-600" : "text-sky-600"
+          }`;
+          detailDescription.textContent = item.description;
+
+          detailActionContainer.innerHTML = ""; // 清空旧内容
+          gameEmbedContainer.classList.add("hidden");
+          gameEmbedContainer.style.opacity = "0";
+          gameIframe.src = "about:blank";
+
+          if (item.type === "游戏" && item.embedUrl) {
+            const playButton = document.createElement("button");
+            playButton.className =
+              "w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg button-hover-scale text-lg";
+            playButton.innerHTML =
+              '<i class="fas fa-gamepad mr-2"></i>立即畅玩';
+            playButton.onclick = () => {
+              // Hide detail modal first, then show embed
+              detailSection.style.opacity = "0";
+              detailSection.querySelector("div").style.opacity = "0";
+              detailSection.querySelector("div").style.transform =
+                "scale(0.95) translateY(20px)";
+              setTimeout(() => {
+                detailSection.classList.add("hidden");
+                gameEmbedContainer.classList.remove("hidden");
+                setTimeout(() => {
+                  // Stagger for smooth transition
+                  gameEmbedContainer.style.opacity = "1";
+                  gameIframe.src = item.embedUrl;
+                  // Request fullscreen for the game container
+                  const elem = gameEmbedContainer;
+                  if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                  } else if (elem.mozRequestFullScreen) {
+                    /* Firefox */
+                    elem.mozRequestFullScreen();
+                  } else if (elem.webkitRequestFullscreen) {
+                    /* Chrome, Safari & Opera */
+                    elem.webkitRequestFullscreen();
+                  } else if (elem.msRequestFullscreen) {
+                    /* IE/Edge */
+                    elem.msRequestFullscreen();
+                  }
+                }, 50);
+              }, 300); // Match transition duration
+            };
+            detailActionContainer.appendChild(playButton);
+          } else if (item.type === "应用" && item.externalUrl) {
+            const viewButton = document.createElement("a");
+            viewButton.href = item.externalUrl;
+            viewButton.target = "_blank";
+            viewButton.className =
+              "w-full block text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg button-hover-scale text-lg";
+            viewButton.innerHTML =
+              '<i class="fas fa-external-link-alt mr-2"></i>打开应用';
+            detailActionContainer.appendChild(viewButton);
+          }
+
+          detailSection.classList.remove("hidden");
+          setTimeout(() => {
+            // Stagger for smooth transition
+            detailSection.style.opacity = "1";
+            detailSection.querySelector("div").style.opacity = "1";
+            detailSection.querySelector("div").style.transform =
+              "scale(1) translateY(0)";
+          }, 50);
+        }
+
+        // 关闭详情按钮
+        closeDetailButton.addEventListener("click", () => {
+          detailSection.style.opacity = "0";
+          detailSection.querySelector("div").style.opacity = "0";
+          detailSection.querySelector("div").style.transform =
+            "scale(0.95) translateY(20px)";
+          setTimeout(() => {
+            detailSection.classList.add("hidden");
+          }, 300); // Match transition duration
+          gameEmbedContainer.style.opacity = "0";
+          setTimeout(() => {
+            gameEmbedContainer.classList.add("hidden");
+            gameIframe.src = "about:blank";
+          }, 300);
+        });
+
+        // Close embed button
+        if (closeEmbedButton) {
+          closeEmbedButton.addEventListener("click", () => {
+            // Exit fullscreen if active
+            if (
+              document.fullscreenElement ||
+              document.webkitFullscreenElement ||
+              document.mozFullScreenElement ||
+              document.msFullscreenElement
+            ) {
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if (document.mozCancelFullScreen) {
+                /* Firefox */
+                document.mozCancelFullScreen();
+              } else if (document.webkitExitFullscreen) {
+                /* Chrome, Safari and Opera */
+                document.webkitExitFullscreen();
+              } else if (document.msExitFullscreen) {
+                /* IE/Edge */
+                document.msExitFullscreen();
+              }
+            }
+            // Then hide the container
+            gameEmbedContainer.style.opacity = "0";
+            setTimeout(() => {
+              gameEmbedContainer.classList.add("hidden");
+              gameIframe.src = "about:blank";
+            }, 300); // Match transition duration
+          });
+        }
+
+        // 模拟登录
+        loginForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const tokenInput = document.getElementById("token");
+          const token = tokenInput.value;
+          if (token) {
+            // 简单模拟，实际应有API验证
+            // 模拟成功获取用户信息
+            loginForm.classList.add("hidden");
+            userInfoDisplay.classList.remove("hidden");
+            userNameDisplay.textContent = "尊贵的玩家"; // 模拟数据
+            userIdDisplay.textContent =
+              "UID: " + token.substring(0, 8).toUpperCase(); // 模拟数据
+            userAvatarDisplay.src = `https://picsum.photos/100/100?random=${Math.floor(
+              Math.random() * 1000
+            )}`; // 随机头像 from picsum
+
+            // 平滑滚动到用户信息区
+            loginSection.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          } else {
+            alert("请输入Token!");
+          }
+        });
+
+        // 模拟退出登录
+        logoutButton.addEventListener("click", () => {
+          userInfoDisplay.classList.add("hidden");
+          loginForm.classList.remove("hidden");
+          document.getElementById("token").value = ""; // 清空token输入
+        });
+
+        // Banner 滚动逻辑
+        const bannerSlidesWrapper = document.querySelector(
+          ".banner-slides-wrapper"
+        );
+        const bannerDotsContainer = document.querySelector(".banner-dots");
+
+        if (bannerSlidesWrapper && bannerDotsContainer) {
+          const slides = bannerSlidesWrapper.querySelectorAll(".banner-slide");
+          let currentSlide = 0;
+          const slideCount = slides.length;
+          let slideInterval;
+
+          // 生成导航点
+          for (let i = 0; i < slideCount; i++) {
+            const dot = document.createElement("button");
+            dot.classList.add(
+              "banner-dot",
+              "w-3",
+              "h-3",
+              "bg-white",
+              "opacity-50",
+              "rounded-full",
+              "transition-all",
+              "duration-300"
+            );
+            if (i === 0) dot.classList.add("opacity-100", "w-5"); // Active dot style
+            dot.addEventListener("click", () => {
+              goToSlide(i);
+              resetInterval(); // 点击后重置自动播放计时器
+            });
+            bannerDotsContainer.appendChild(dot);
+          }
+          const dots = bannerDotsContainer.querySelectorAll(".banner-dot");
+
+          function updateDots() {
+            dots.forEach((dot, index) => {
+              dot.classList.toggle("opacity-100", index === currentSlide);
+              dot.classList.toggle("opacity-50", index !== currentSlide);
+              dot.classList.toggle("w-5", index === currentSlide); // Active dot wider
+              dot.classList.toggle("w-3", index !== currentSlide);
+            });
+          }
+
+          function goToSlide(slideIndex) {
+            currentSlide = slideIndex;
+            bannerSlidesWrapper.style.transform = `translateX(-${
+              currentSlide * 100
+            }%)`;
+            updateDots();
+          }
+
+          function nextSlide() {
+            goToSlide((currentSlide + 1) % slideCount);
+          }
+
+          function startInterval() {
+            if (slideCount > 1) {
+              slideInterval = setInterval(nextSlide, 3000); // 每3秒切换一次
+            }
+          }
+
+          function resetInterval() {
+            clearInterval(slideInterval);
+            startInterval();
+          }
+
+          if (slideCount > 1) {
+            startInterval();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
